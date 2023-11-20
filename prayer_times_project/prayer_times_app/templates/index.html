@@ -1,0 +1,78 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Prayer Times</title>
+    <link rel="stylesheet" type="text/css" href="{% static 'css/styles.css' %}">
+    <script>
+        function getLocation() {
+            // Check if the URL already contains lat and lon parameters
+            const urlParams = new URLSearchParams(window.location.search);
+            const lat = urlParams.get('lat');
+            const lon = urlParams.get('lon');
+
+            // Only request geolocation if lat and lon aren't present
+            if (!lat || !lon) {
+                if (navigator.geolocation) {
+                    navigator.geolocation.getCurrentPosition(showPosition, showError);
+                } else {
+                    alert("Geolocation is not supported by this browser.");
+                }
+            }
+        }
+
+        function showPosition(position) {
+            const lat = position.coords.latitude;
+            const lon = position.coords.longitude;
+            window.location.href = `/get-times?lat=${lat}&lon=${lon}`;
+        }
+
+        function showError(error) {
+            switch(error.code) {
+                case error.PERMISSION_DENIED:
+                    alert("User denied the request for Geolocation.");
+                    break;
+                case error.POSITION_UNAVAILABLE:
+                    alert("Location information is unavailable.");
+                    break;
+                case error.TIMEOUT:
+                    alert("The request to get user location timed out.");
+                    break;
+                case error.UNKNOWN_ERROR:
+                    alert("An unknown error occurred.");
+                    break;
+            }
+        }
+
+        window.onload = getLocation;
+    </script>
+</head>
+<body>
+
+<div class="hero-image">
+    <div class="hero-text">
+        <h1>Today's Prayer Times</h1>
+        <form method="post">
+            {% csrf_token %}
+            <input type="text" name="city" placeholder="Enter Your City">
+            <button type="submit">Get Times</button>
+        </form>
+
+        {% if prayer_times %}
+            <div>
+                <h2>Prayer Times for {{ city }}:</h2>
+                <ul>
+                    <li>Fajr: {{ prayer_times.fajr }}</li>
+                    <li>Dhuhr: {{ prayer_times.dhuhr }}</li>
+                    <li>Asr: {{ prayer_times.asr }}</li>
+                    <li>Maghrib: {{ prayer_times.maghrib }}</li>
+                    <li>Isha: {{ prayer_times.isha }}</li>
+                </ul>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+</body>
+</html>
+
